@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapitre 4 — Outils de diagnostic</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --bg-card: #FFFFFF;
+    --bg-input: #F2F0EB;
+    --accent: #B8860B;
+    --accent-light: #F5ECD7;
+    --text: #1A1A1A;
+    --text-secondary: #4A4A4A;
+    --text-muted: #7A7A7A;
+    --border: #D9D5CC;
+    --green: #2D7A4F;
+    --green-bg: #E6F4EC;
+    --orange: #C06B20;
+    --orange-bg: #FDF0E2;
+    --red: #B03A3A;
+    --red-bg: #FDEAEA;
+    --blue: #2E6BA6;
+    --blue-bg: #E4EFF9;
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-body); background: var(--bg); color: var(--text);
+    min-height: 100vh; font-size: 18px; line-height: 1.7; font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  .header { padding: 40px 28px 32px; border-bottom: 2px solid var(--border); background: #fff; }
+  .header-inner { max-width: 860px; margin: 0 auto; }
+  .header-tag { font-size: 14px; letter-spacing: 3px; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 10px; }
+  .header h1 { font-size: 38px; font-family: var(--font-display); font-weight: 400; color: var(--text); line-height: 1.2; margin-bottom: 8px; }
+  .header p { color: var(--text-secondary); font-size: 18px; margin-top: 6px; }
+  .nav { padding: 14px 28px; border-bottom: 2px solid var(--border); overflow-x: auto; white-space: nowrap; background: #fff; position: sticky; top: 0; z-index: 10; }
+  .nav-inner { max-width: 860px; margin: 0 auto; display: flex; gap: 6px; }
+  .nav-btn { background: transparent; color: var(--text-muted); border: 2px solid transparent; border-radius: 8px; padding: 10px 18px; cursor: pointer; font-family: var(--font-body); font-size: 15px; font-weight: 500; white-space: nowrap; transition: all 0.2s; }
+  .nav-btn:hover { background: var(--bg-input); color: var(--text); }
+  .nav-btn.active { background: var(--accent); color: #fff; font-weight: 700; border-color: var(--accent); }
+  .nav-btn .num { font-weight: 700; margin-right: 6px; font-size: 13px; opacity: 0.7; }
+  .content { max-width: 860px; margin: 0 auto; padding: 32px 28px 80px; }
+  .tool-title { font-family: var(--font-display); font-size: 30px; color: var(--text); margin-bottom: 6px; }
+  .tool-desc { font-size: 16px; color: var(--text-muted); margin-bottom: 24px; font-weight: 500; }
+  .tool-intro { color: var(--text-secondary); line-height: 1.7; margin-bottom: 28px; font-size: 17px; }
+  .card { background: var(--bg-card); border-radius: 12px; padding: 20px 24px; margin-bottom: 14px; border: 2px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .card-accent { border-left: 5px solid var(--border); }
+  input[type="text"], textarea { background: transparent; border: none; border-bottom: 2px solid var(--border); color: var(--text); padding: 8px 0; font-size: 17px; font-family: var(--font-body); font-weight: 500; outline: none; width: 100%; }
+  input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder, textarea::placeholder { color: #AAA; font-weight: 400; }
+  textarea { background: var(--bg-input); border: 2px solid var(--border); padding: 12px 16px; border-radius: 10px; resize: vertical; font-size: 16px; line-height: 1.6; }
+  .input-full { background: var(--bg-input); border: 2px solid var(--border); color: var(--text); padding: 14px 18px; border-radius: 10px; font-size: 17px; font-family: var(--font-body); font-weight: 500; outline: none; width: 100%; }
+  .input-full:focus { border-color: var(--accent); }
+  .score-btn { width: 38px; height: 38px; border-radius: 8px; border: 2px solid var(--border); cursor: pointer; font-weight: 700; font-size: 16px; font-family: var(--font-body); transition: all 0.15s; background: var(--bg-input); color: var(--text-muted); }
+  .score-btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .toggle-btn { min-width: 52px; height: 36px; border-radius: 8px; border: 2px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 700; font-family: var(--font-body); transition: all 0.15s; background: var(--bg-input); color: var(--text-muted); }
+  .check-btn { width: 40px; height: 40px; border-radius: 8px; border: 2px solid var(--border); cursor: pointer; font-size: 20px; font-weight: 700; transition: all 0.15s; background: var(--bg-input); color: var(--text-muted); }
+  .check-btn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .badge { font-size: 14px; padding: 4px 12px; border-radius: 6px; font-weight: 600; }
+  .score-num { font-size: 28px; font-weight: 800; }
+  .verdict-box { margin-top: 16px; padding: 14px 18px; border-radius: 10px; border-left: 4px solid; font-size: 16px; }
+  .add-btn { background: transparent; border: 2px dashed var(--border); color: var(--text-muted); padding: 14px 24px; border-radius: 10px; cursor: pointer; font-family: var(--font-body); font-size: 16px; font-weight: 600; width: 100%; margin-top: 8px; }
+  .add-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .level-bar { width: 5px; height: 20px; border-radius: 3px; display: inline-block; }
+  .depth-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .col { display: flex; flex-direction: column; gap: 12px; }
+  .slider-group { display: flex; gap: 20px; flex-wrap: wrap; }
+  .slider-item { flex: 1; min-width: 120px; }
+  .slider-label { font-size: 14px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .slider-btns { display: flex; gap: 5px; }
+  .gen-card { background: var(--bg-card); border-radius: 12px; padding: 18px 22px; border: 2px solid var(--border); border-left: 5px solid var(--accent); margin-bottom: 12px; font-size: 17px; }
+  .gen-formats { display: flex; gap: 6px; opacity: 0.5; font-size: 18px; }
+  .grid-table { display: grid; gap: 2px; background: var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .grid-cell { background: var(--bg-card); padding: 12px; display: flex; align-items: center; justify-content: center; }
+  .grid-header { background: var(--bg-input); padding: 12px 8px; font-size: 13px; color: var(--text-secondary); font-weight: 700; text-align: center; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.3px; }
+  .footer { padding: 20px 28px; border-top: 2px solid var(--border); text-align: center; font-size: 14px; color: var(--text-muted); font-weight: 500; background: #fff; }
+  .hidden { display: none; }
+  .sync-badge { display: inline-block; font-size: 12px; background: var(--accent-light); color: var(--accent); padding: 2px 10px; border-radius: 20px; font-weight: 600; margin-left: 8px; }
+  .cost-row { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 14px; }
+  .cost-label { font-size: 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; min-width: 80px; padding-top: 14px; }
+  .cost-input { flex: 1; min-width: 200px; }
+  @media (max-width: 600px) { body { font-size: 16px; } .header h1 { font-size: 28px; } .tool-title { font-size: 24px; } .nav-btn { font-size: 13px; padding: 8px 12px; } .slider-group { flex-direction: column; } .content { padding: 20px 16px 60px; } .cost-row { flex-direction: column; } }
+</style>
+</head>
+<body>
+<div class="header"><div class="header-inner">
+  <div class="header-tag">Chapitre 4 — Outils de diagnostic</div>
+  <h1>Ce que votre audience attend vraiment</h1>
+  <p>5 outils pour identifier, valider et prioriser les problèmes douloureux de vos clients.</p>
+</div></div>
+<div class="nav"><div class="nav-inner">
+  <button class="nav-btn active" onclick="showTool('score')"><span class="num">01</span>Score de douleur</button>
+  <button class="nav-btn" onclick="showTool('brule')"><span class="num">02</span>Est-ce urgent ?</button>
+  <button class="nav-btn" onclick="showTool('matrice')"><span class="num">03</span>Matrice d'alignement</button>
+  <button class="nav-btn" onclick="showTool('generateur')"><span class="num">04</span>Générateur de contenu</button>
+  <button class="nav-btn" onclick="showTool('cout')"><span class="num">05</span>Coût de l'inaction</button>
+</div></div>
+<div class="content">
+
+<!-- ═══════ OUTIL 1 ═══════ -->
+<div id="tool-score" class="tool-panel">
+  <div class="tool-title">Score de douleur</div>
+  <div class="tool-desc">Priorisez vos problèmes</div>
+  <p class="tool-intro">Pour chaque problème identifié chez vos clients, évaluez trois critères de 1 à 5. Un score de 12 ou plus signale un « problème en or » sur lequel bâtir votre contenu.</p>
+  <div id="score-list"></div>
+  <button class="add-btn" onclick="addScoreRow()">+ Ajouter un problème</button>
+</div>
+
+<!-- ═══════ OUTIL 2 ═══════ -->
+<div id="tool-brule" class="tool-panel hidden">
+  <div class="tool-title">Est-ce urgent ?</div>
+  <div class="tool-desc">Validez l'urgence de chaque problème</div>
+  <p class="tool-intro">Les problèmes nommés dans le Score de douleur apparaissent automatiquement ici. Pour chacun, répondez aux 6 questions. Cliquez pour alterner : <strong style="color:var(--green)">Oui</strong> / <strong style="color:var(--red)">Non</strong> / <span style="color:var(--text-muted)">Pas encore répondu</span>. 5 « oui » ou plus = problème urgent.</p>
+  <div id="brule-list"></div>
+</div>
+
+<!-- ═══════ OUTIL 3 ═══════ -->
+<div id="tool-matrice" class="tool-panel hidden">
+  <div class="tool-title">Matrice d'alignement problème/expertise</div>
+  <div class="tool-desc">Vérifiez la cohérence</div>
+  <p class="tool-intro">Croisez vos problèmes identifiés avec trois critères personnels. Les problèmes qui cochent les 3 cases sont votre zone d'impact maximale.</p>
+  <div id="matrice-container"></div>
+</div>
+
+<!-- ═══════ OUTIL 4 ═══════ -->
+<div id="tool-generateur" class="tool-panel hidden">
+  <div class="tool-title">Générateur de contenu par problème</div>
+  <div class="tool-desc">Trouvez vos angles</div>
+  <p class="tool-intro">Entrez un problème douloureux et obtenez 5 idées de contenu prêtes à adapter. Chaque problème = au moins 5 angles de contenu.</p>
+  <div class="col" style="margin-bottom:24px">
+    <input type="text" id="gen-problem" class="input-full" placeholder="Le problème douloureux de votre client..." oninput="updateGen()">
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <input type="text" id="gen-solution" class="input-full" style="flex:1;min-width:200px" placeholder="Votre solution unique" oninput="updateGen()">
+      <input type="text" id="gen-expert" class="input-full" style="flex:1;min-width:200px" placeholder="Un expert de référence" oninput="updateGen()">
+    </div>
+  </div>
+  <div id="gen-results"></div>
+</div>
+
+<!-- ═══════ OUTIL 5 : COÛT DE L'INACTION ═══════ -->
+<div id="tool-cout" class="tool-panel hidden">
+  <div class="tool-title">Audit du coût de l'inaction</div>
+  <div class="tool-desc">Que se passe-t-il si rien ne change ?</div>
+  <p class="tool-intro">Pour chacun de vos problèmes principaux, imaginez que votre client ne fait rien pendant 6 mois. Aucune solution n'est apportée. Évaluez les conséquences concrètes sur 4 dimensions. Plus le coût est élevé, plus votre contenu a de la valeur.</p>
+  <div id="cout-list"></div>
+</div>
+
+</div>
+<div class="footer">Companion du livre « Personal Branding » — Benjamin Chaminade</div>
+
+<script>
+function showTool(id) {
+  document.querySelectorAll('.tool-panel').forEach(function(el) { el.classList.add('hidden'); });
+  document.getElementById('tool-' + id).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(function(btn) { btn.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
+  // Sync quand on arrive sur outil 2, 3 ou 5
+  if (id === 'brule') syncBrule();
+  if (id === 'matrice') syncMatrice();
+  if (id === 'cout') syncCout();
+}
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ══════════════════════════════════════
+// OUTIL 1 : SCORE DE DOULEUR
+// ══════════════════════════════════════
+var SD = [];
+for (var i = 0; i < 5; i++) SD.push({n:'',f:0,i:0,u:0});
+
+function rS() {
+  var c = document.getElementById('score-list'); c.innerHTML = '';
+  SD.forEach(function(x, idx) {
+    var tot = x.f + x.i + x.u, lbl='', col='', bg='';
+    if (tot>=12){lbl='Problème en or';col='var(--green)';bg='var(--green-bg)';}
+    else if(tot>=8){lbl='Prometteur';col='var(--orange)';bg='var(--orange-bg)';}
+    else if(tot>0){lbl='En réserve';col='var(--red)';bg='var(--red-bg)';}
+    var bH = tot>0 ? '<div style="display:flex;align-items:center;gap:10px"><span class="score-num" style="color:'+col+'">'+tot+'</span><span class="badge" style="color:'+col+';background:'+bg+'">'+lbl+'</span></div>' : '';
+    function sl(fld,lab,val) {
+      var b='';for(var n=1;n<=5;n++){b+='<button class="score-btn '+(n<=val?'on':'')+'" onclick="SD['+idx+'].'+fld+'='+n+';rS()">'+n+'</button>';}
+      return '<div class="slider-item"><div class="slider-label">'+lab+'</div><div class="slider-btns">'+b+'</div></div>';
+    }
+    var d=document.createElement('div');d.className='card card-accent';d.style.borderLeftColor=tot>0?col:'var(--border)';
+    d.innerHTML='<div class="row" style="margin-bottom:14px"><span style="color:var(--accent);font-weight:800;font-size:16px;min-width:28px">'+String(idx+1).padStart(2,'0')+'</span><input type="text" placeholder="Décrivez le problème douloureux..." value="'+esc(x.n)+'" oninput="SD['+idx+'].n=this.value" style="flex:1;min-width:200px">'+bH+'</div><div class="slider-group">'+sl('f','Fréquence',x.f)+sl('i','Intensité',x.i)+sl('u','Urgence perçue',x.u)+'</div>';
+    c.appendChild(d);
+  });
+}
+function addScoreRow(){SD.push({n:'',f:0,i:0,u:0});rS();}
+
+// ══════════════════════════════════════
+// OUTIL 2 : EST-CE URGENT ?
+// Sync automatique depuis Outil 1
+// 6 questions (ajout "cité par plusieurs")
+// ══════════════════════════════════════
+var BQ=[
+  "Votre prospect en parle spontanément en rendez-vous ou en appel ?",
+  "Il a déjà essayé de résoudre ce problème (et échoué) ?",
+  "Il peut chiffrer le coût de ce problème (en temps, argent ou énergie) ?",
+  "Il le mentionne dans les 5 premières minutes d'une conversation ?",
+  "Il serait prêt à payer pour le résoudre dès demain ?",
+  "Ce problème a été cité par plusieurs personnes différentes ?"
+];
+var NQ = BQ.length; // 6 questions
+var BD = [];
+
+function syncBrule() {
+  // Récupère les problèmes nommés dans SD
+  var named = SD.filter(function(x){ return x.n.trim().length > 0; });
+  if (named.length === 0) named = [{n:''}]; // au moins 1 vide
+
+  // Garde les réponses existantes si le nom correspond
+  var newBD = [];
+  named.forEach(function(src) {
+    var existing = BD.find(function(b){ return b.n === src.n; });
+    if (existing) {
+      // S'assurer qu'on a 6 réponses (au cas où on avait 5 avant)
+      while (existing.a.length < NQ) existing.a.push(null);
+      newBD.push(existing);
+    } else {
+      var a = []; for(var i=0;i<NQ;i++) a.push(null);
+      newBD.push({n: src.n, a: a});
+    }
+  });
+  BD = newBD;
+  rB();
+}
+
+function rB(){
+  var c=document.getElementById('brule-list');c.innerHTML='';
+  if (BD.length === 0) {
+    c.innerHTML = '<div class="card" style="text-align:center;color:var(--text-muted);padding:40px"><p style="font-size:17px">Retournez à l\'outil <strong>01 Score de douleur</strong> et nommez vos problèmes.<br>Ils apparaîtront automatiquement ici.</p></div>';
+    return;
+  }
+  BD.forEach(function(p,pi){
+    var yc=p.a.filter(function(x){return x===true;}).length;
+    var all=p.a.every(function(x){return x!==null;});
+    var vH='';
+    if(all){var l,co,bg,de;
+      if(yc>=5){l='Problème urgent 🔥';co='var(--green)';bg='var(--green-bg)';de='Fondation solide pour votre contenu';}
+      else if(yc>=4){l='Problème chaud';co='var(--green)';bg='var(--green-bg)';de='Bon candidat, à confirmer sur le terrain';}
+      else if(yc>=3){l='Problème tiède';co='var(--orange)';bg='var(--orange-bg)';de='Peut fonctionner en angle secondaire';}
+      else{l='Problème froid';co='var(--red)';bg='var(--red-bg)';de='À éviter comme fondation de contenu';}
+      vH='<div class="verdict-box" style="background:'+bg+';border-left-color:'+co+'"><strong style="color:'+co+';font-size:17px">'+yc+'/'+NQ+' — '+l+'</strong> <span style="color:var(--text-secondary);font-size:15px;margin-left:14px">'+de+'</span></div>';
+    }
+    var qH='';
+    BQ.forEach(function(q,qi){
+      var ans=p.a[qi],bl,bbg,bc,bbd;
+      if(ans===true){bl='OUI';bbg='var(--green)';bc='#fff';bbd='var(--green)';}
+      else if(ans===false){bl='NON';bbg='var(--red)';bc='#fff';bbd='var(--red)';}
+      else{bl='—';bbg='var(--bg-input)';bc='var(--text-muted)';bbd='var(--border)';}
+      qH+='<div style="display:flex;align-items:center;gap:14px;padding:10px 0;'+(qi<NQ-1?'border-bottom:1px solid var(--border)':'')+'"><button class="toggle-btn" style="background:'+bbg+';color:'+bc+';border-color:'+bbd+'" onclick="tB('+pi+','+qi+')">'+bl+'</button><span style="font-size:16px;flex:1;font-weight:500">'+q+'</span></div>';
+    });
+    var d=document.createElement('div');d.className='card';d.style.marginBottom='18px';
+    var nameHTML = p.n ? '<div style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text)">'+esc(p.n)+'<span class="sync-badge">depuis Score</span></div>' : '<div style="font-size:16px;font-weight:500;margin-bottom:16px;color:var(--text-muted);font-style:italic">Problème sans nom</div>';
+    d.innerHTML= nameHTML + qH + vH;
+    c.appendChild(d);
+  });
+}
+function tB(pi,qi){var c=BD[pi].a[qi];BD[pi].a[qi]=c===null?true:c===true?false:null;rB();}
+
+// ══════════════════════════════════════
+// OUTIL 3 : MATRICE D'ALIGNEMENT
+// Critères modifiés
+// ══════════════════════════════════════
+var MC=["J'ai vécu ce problème","Ça correspond à mes valeurs","J'ai envie de travailler sur ce sujet"];
+var MD=[];for(var m=0;m<5;m++)MD.push({n:'',c:[false,false,false]});
+
+function syncMatrice() {
+  var named = SD.filter(function(x){ return x.n.trim().length > 0; });
+  if (named.length === 0) return;
+  // Pré-remplir les noms si vides
+  named.forEach(function(src, i) {
+    if (i < MD.length && !MD[i].n) MD[i].n = src.n;
+  });
+  // Ajouter des lignes si besoin
+  while (MD.length < named.length) {
+    MD.push({n: named[MD.length].n, c:[false,false,false]});
+  }
+  rM();
+}
+
+function rM(){
+  var ct=document.getElementById('matrice-container');
+  var hH='<div class="grid-header" style="text-align:left;padding-left:16px">Problème</div>';
+  MC.forEach(function(c){hH+='<div class="grid-header">'+c+'</div>';});
+  hH+='<div class="grid-header">Verdict</div>';
+  var rH='';
+  MD.forEach(function(x,i){
+    var sc=x.c.filter(Boolean).length,vl='',vc='',vb='';
+    if(x.n){if(sc===3){vl="Impact maximal";vc='var(--green)';vb='var(--green-bg)';}else if(sc===2){vl='À développer';vc='var(--orange)';vb='var(--orange-bg)';}else{vl='Faible';vc='var(--red)';vb='var(--red-bg)';}}
+    rH+='<div class="grid-cell" style="justify-content:flex-start;padding:10px 16px"><input type="text" placeholder="Problème '+(i+1)+'" value="'+esc(x.n)+'" oninput="MD['+i+'].n=this.value;rM()" style="font-size:16px;font-weight:500;border:none"></div>';
+    x.c.forEach(function(ch,ci){rH+='<div class="grid-cell"><button class="check-btn '+(ch?'on':'')+'" onclick="MD['+i+'].c['+ci+']=!MD['+i+'].c['+ci+'];rM()">'+(ch?'✓':'')+'</button></div>';});
+    rH+='<div class="grid-cell" style="flex-direction:column;gap:4px">'+(x.n?'<span class="badge" style="color:'+vc+';background:'+vb+';font-size:13px">'+vl+'</span>':'')+'</div>';
+  });
+  ct.innerHTML='<div class="grid-table" style="grid-template-columns:minmax(180px,1fr) repeat(3,100px) 140px">'+hH+rH+'</div>';
+}
+
+// ══════════════════════════════════════
+// OUTIL 4 : GÉNÉRATEUR DE CONTENU
+// ══════════════════════════════════════
+var GF=['📝','🎬','✉️','🖼️','🎧'];
+function updateGen(){
+  var p=document.getElementById('gen-problem').value,s=document.getElementById('gen-solution').value,e=document.getElementById('gen-expert').value;
+  var ts=["L'erreur que tout le monde fait avec "+(p||'[problème]'),"Comment "+(s||'[votre méthode]')+" résout "+(p||'[problème]')+" en moins de 30 jours","Pourquoi la solution courante ne fonctionne pas pour "+(p||'[problème]'),"Les 3 signes que "+(p||'[problème]')+" vous coûte plus que vous ne pensez","Ce que "+(e||'[expert connu]')+" a compris sur "+(p||'[problème]')+" que la plupart ignorent"];
+  var ct=document.getElementById('gen-results');ct.innerHTML='';
+  ts.forEach(function(t){var d=document.createElement('div');d.className='gen-card';d.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap"><div style="flex:1;font-size:17px;line-height:1.5;font-weight:500">'+esc(t)+'</div><div class="gen-formats">'+GF.map(function(f){return '<span>'+f+'</span>';}).join('')+'</div></div>';ct.appendChild(d);});
+}
+
+// ══════════════════════════════════════
+// OUTIL 5 : AUDIT DU COÛT DE L'INACTION
+// ══════════════════════════════════════
+var COUT_DIMS = [
+  {k:'argent', label:'Argent', icon:'💰', hint:'Combien ce problème coûte-t-il en euros par mois si rien ne change ?'},
+  {k:'temps', label:'Temps', icon:'⏳', hint:'Combien d\'heures/semaines perdues à cause de ce problème ?'},
+  {k:'energie', label:'Énergie / moral', icon:'🔋', hint:'Quel impact sur la motivation, le stress, la confiance ?'},
+  {k:'opportunite', label:'Opportunités manquées', icon:'🚪', hint:'Quelles portes restent fermées tant que ce problème persiste ?'}
+];
+var CD = []; // {n:'', scores:{argent:0,temps:0,energie:0,opportunite:0}, details:{argent:'',temps:'',energie:'',opportunite:''}}
+
+function syncCout() {
+  var named = SD.filter(function(x){ return x.n.trim().length > 0; });
+  if (named.length === 0) named = [{n:''}];
+  // Top 3 par score
+  var sorted = SD.filter(function(x){ return x.n.trim().length > 0; })
+    .map(function(x){ return {n:x.n, tot:x.f+x.i+x.u}; })
+    .sort(function(a,b){ return b.tot - a.tot; })
+    .slice(0, 5);
+  if (sorted.length === 0) sorted = [{n:'', tot:0}];
+
+  var newCD = [];
+  sorted.forEach(function(src) {
+    var existing = CD.find(function(c){ return c.n === src.n; });
+    if (existing) { newCD.push(existing); }
+    else {
+      var sc = {}, dt = {};
+      COUT_DIMS.forEach(function(d){ sc[d.k] = 0; dt[d.k] = ''; });
+      newCD.push({n: src.n, scores: sc, details: dt});
+    }
+  });
+  CD = newCD;
+  rC();
+}
+
+function rC() {
+  var ct = document.getElementById('cout-list'); ct.innerHTML = '';
+  if (CD.length === 0 || (CD.length === 1 && !CD[0].n)) {
+    ct.innerHTML = '<div class="card" style="text-align:center;color:var(--text-muted);padding:40px"><p style="font-size:17px">Retournez à l\'outil <strong>01 Score de douleur</strong> et nommez vos problèmes.<br>Les 5 premiers apparaîtront automatiquement ici.</p></div>';
+    return;
+  }
+  CD.forEach(function(prob, pi) {
+    var totalScore = 0;
+    COUT_DIMS.forEach(function(d){ totalScore += prob.scores[d.k]; });
+    var maxScore = COUT_DIMS.length * 5;
+
+    var sevLabel = '', sevColor = '', sevBg = '';
+    if (totalScore >= 16) { sevLabel = 'Coût critique'; sevColor = 'var(--red)'; sevBg = 'var(--red-bg)'; }
+    else if (totalScore >= 10) { sevLabel = 'Coût significatif'; sevColor = 'var(--orange)'; sevBg = 'var(--orange-bg)'; }
+    else if (totalScore > 0) { sevLabel = 'Coût modéré'; sevColor = 'var(--blue)'; sevBg = 'var(--blue-bg)'; }
+
+    var dimsHTML = '';
+    COUT_DIMS.forEach(function(dim) {
+      var val = prob.scores[dim.k];
+      // Score buttons
+      var btns = '';
+      for (var n = 1; n <= 5; n++) {
+        btns += '<button class="score-btn ' + (n <= val ? 'on' : '') + '" onclick="CD['+pi+'].scores.'+dim.k+'='+n+';rC()">' + n + '</button>';
+      }
+      dimsHTML += '<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+          '<span style="font-size:20px">' + dim.icon + '</span>' +
+          '<span style="font-size:16px;font-weight:700;color:var(--text)">' + dim.label + '</span>' +
+          '<span style="font-size:14px;color:var(--text-muted);font-weight:400">' + dim.hint + '</span>' +
+        '</div>' +
+        '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">' +
+          '<div class="slider-btns">' + btns + '</div>' +
+          '<input type="text" placeholder="Décrivez concrètement le coût..." value="' + esc(prob.details[dim.k]) + '" oninput="CD['+pi+'].details.'+dim.k+'=this.value" style="flex:1;min-width:200px;font-size:15px">' +
+        '</div>' +
+      '</div>';
+    });
+
+    var verdictHTML = '';
+    if (totalScore > 0) {
+      verdictHTML = '<div class="verdict-box" style="background:' + sevBg + ';border-left-color:' + sevColor + '">' +
+        '<strong style="color:' + sevColor + ';font-size:17px">' + totalScore + '/' + maxScore + ' — ' + sevLabel + '</strong>' +
+        '<span style="color:var(--text-secondary);font-size:15px;margin-left:14px">' +
+        (totalScore >= 16 ? 'Ce problème non résolu est une bombe à retardement. Contenu à très haute valeur.' :
+         totalScore >= 10 ? 'Le coût est réel. Votre audience le ressent, même si elle ne le chiffre pas.' :
+         'L\'impact existe mais reste gérable. Angle de contenu secondaire.') +
+        '</span></div>';
+    }
+
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.style.padding = '24px';
+    card.style.marginBottom = '18px';
+    card.innerHTML =
+      '<div class="row" style="margin-bottom:18px">' +
+        '<span style="color:var(--accent);font-weight:800;font-size:18px">' + String(pi+1).padStart(2,'0') + '</span>' +
+        '<span style="font-size:18px;font-weight:700;color:var(--text)">' + esc(prob.n) + '</span>' +
+        '<span class="sync-badge">depuis Score</span>' +
+      '</div>' +
+      '<div style="padding:12px 16px;border-radius:8px;background:var(--bg-input);margin-bottom:18px;font-size:15px;color:var(--text-secondary);font-style:italic">' +
+        '« Si votre client ne fait rien pendant 6 mois pour résoudre <strong>' + esc(prob.n) + '</strong>, que se passe-t-il ? »' +
+      '</div>' +
+      dimsHTML + verdictHTML;
+    ct.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+rS(); rB(); rM(); updateGen(); rC();
+</script>
+</body>
+</html>
